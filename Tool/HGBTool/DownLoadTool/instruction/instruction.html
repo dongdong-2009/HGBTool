@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>介绍</title>
+    <script src="./js/vue.js"></script>
+    <script src="./data/data.js"></script>
+    <style>
+        .header{
+
+            width: 100%;
+            height: 40px;
+            text-align: left;
+            color: darkblue;
+            font-size: 30px;
+        }
+        .mainPrompt{
+            background: white;
+            width: 100%;
+            height: 40px;
+
+        }
+        .mainPrompt i{
+            margin-left: 0px;
+            text-align: left;
+            color: black;
+        }
+        .subHeader{
+            background: #eee;
+            width: 100%;
+            height: 40px;
+            text-align: left;
+            color: black;
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="content">
+    <div class="header">{{component.prompt}}</div><br><br>
+
+
+    <div style="color: black">调用:</div>
+    <table border="1px">
+        <tr v-for="(tool,inex) in component.tools">
+            <td style="color: red">{{tool.name}}</td>
+            <td style="color: blue">{{tool.prompt}}</td>
+        </tr>
+    </table><br>
+    <div>功能:<i style="color: blue">{{component.instruction}}</i></div><br>
+
+
+    <div v-if="component.librarys!=null">
+        <div style="color: black">系统依赖库:</div>
+        <table border="1px">
+            <tr v-for="(library,inex) in component.librarys">
+                <td style="color: red">{{library}}</td>
+            </tr>
+        </table><br>
+    </div>
+
+
+    <div v-if="component.infoPlist!=null">
+        <div style="color: black">运行期配置infoPlist:</div>
+        <table border="1px">
+            <tr v-for="(value,index) in component.infoPlist">
+                <td style="color: red">{{value.key}}</td>
+                <td style="color: blue">{{value.value}}</td>
+            </tr>
+        </table><br>
+    </div>
+
+
+    <div v-if="component.buildSetting!=null">
+        <div style="color: black">环境配置 Build Setting:</div>
+        <table border="1px">
+            <tr v-for="(value,index) in component.buildSetting">
+                <td style="color: red">{{value.key}}</td>
+                <td style="color: blue">{{value.value}}</td>
+            </tr>
+        </table><br>
+    </div>
+
+    <div v-if="component.other!=null">
+        <div style="color: black">环境配置其他:</div>
+        <table border="1px">
+            <tr v-for="(value,index) in component.other">
+                <td style="color: red">{{value.key}}</td>
+                <td style="color: blue">{{value.value}}</td>
+            </tr>
+        </table><br>
+    </div>
+
+    <div style="color: black">真机模拟器库合并</div>
+    <div>动态库:<i style="color: blue;width: 70%">{{component.framework}}</i></div>
+    <div>静态库:<i style="color: blue;width: 70%">{{component.a}}</i></div>
+
+
+
+    </div>
+
+</div>
+
+<script>
+
+
+   var vue=new Vue({
+        el: '#content',
+        data: {
+            component:component
+
+        },
+        methods:{
+
+        }
+
+        });
+
+
+
+
+
+</script>
+</body>
+</html>

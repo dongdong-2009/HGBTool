@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>错误表</title>
+    <script src="./js/vue.js"></script>
+    <script src="./data/data.js"></script>
+    <style>
+        .header{
+
+            width: 100%;
+            height: 40px;
+            text-align: left;
+            color: darkblue;
+            font-size: 30px;
+        }
+        .mainPrompt{
+            background: white;
+            width: 100%;
+            height: 40px;
+
+        }
+        .mainPrompt i{
+            margin-left: 0px;
+            text-align: left;
+            color: black;
+        }
+        .subHeader{
+            background: #eee;
+            width: 100%;
+            height: 40px;
+            text-align: left;
+            color: black;
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="content">
+    <div v-if="code.code!=null">
+        <div style="color: blue">返回参数:</div>
+        <div style="color: black;font-size: 12px">信息参数类型:<i style="color: red">NSDictionary</i></div>
+        <table border="1px">
+            <td>参数</td>
+            <td>参数类型</td>
+            <td>描述</td>
+            <tr v-for="(value,key) in code.code">
+                <td style="color: red">{{key}}:</td>
+                <td style="color: blue" v-if="key!='data'">String</td>
+                <td>{{value}}</td>
+            </tr>
+        </table><br>
+    </div>
+    <br><br>
+    <div v-if="code.codes!=null">
+        <div style="color: blue">错误表:</div>
+
+        <table border="1px">
+            <tr >
+                <td>编码码</td>
+                <td>编码描述</td>
+            </tr>
+            <tr v-for="(value,inex) in code.codes">
+                <td style="color: red">{{value.key}}</td>
+                <td style="color:blue;">{{value.value}}</td>
+
+            </tr>
+        </table><br><br>
+    </div>
+</div>
+
+
+
+
+<script>
+
+console.log();
+
+   var vue=new Vue({
+        el: '#content',
+        data: {
+            code:code
+
+        },
+        methods:{
+
+        }
+
+        });
+
+
+
+
+
+</script>
+</body>
+</html>
