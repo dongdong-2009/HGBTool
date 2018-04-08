@@ -160,6 +160,9 @@
         if(self.baseUrlString){
             baseUrl=[NSURL URLWithString:self.baseUrlString];
         }
+        if (baseUrl==nil) {
+            baseUrl=[NSURL URLWithString:@""];
+        }
 
         [_instance renderView:string options:@{@"bundleUrl":[[baseUrl absoluteString] stringByDeletingLastPathComponent]} data:[string dataUsingEncoding:NSUTF8StringEncoding]];
 
@@ -445,6 +448,14 @@
     }
     return url;
 }
-
+#pragma mark setter
+-(void)setIsShowReturnButton:(BOOL)isShowReturnButton{
+    _isShowReturnButton=isShowReturnButton;
+    if(_isShowReturnButton){
+        self.actionButton.hidden=NO;
+    }else{
+        self.actionButton.hidden=YES;
+    }
+}
 @end
 
