@@ -382,8 +382,9 @@
         return NO;
     }
     if(![HGBXMLWriter isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBXMLWriter urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

@@ -165,8 +165,9 @@ static HGBFileManageTool *instance=nil;
         return NO;
     }
     if(![HGBFileManageTool isURL:url]){
-        return nil;
+        return NO;
     }
+    url=[HGBFileManageTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

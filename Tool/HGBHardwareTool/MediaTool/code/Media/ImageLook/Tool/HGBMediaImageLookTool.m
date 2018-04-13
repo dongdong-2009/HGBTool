@@ -164,8 +164,9 @@ static HGBMediaImageLookTool *instance;
         return NO;
     }
     if(![HGBMediaImageLookTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBMediaImageLookTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

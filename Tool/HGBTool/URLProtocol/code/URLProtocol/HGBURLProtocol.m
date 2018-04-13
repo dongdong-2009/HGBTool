@@ -210,8 +210,9 @@ static HGBURLProtocol*instance=nil;
         return NO;
     }
     if(![HGBURLProtocol isURL:url]){
-        return nil;
+        return NO;
     }
+    url=[HGBURLProtocol urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

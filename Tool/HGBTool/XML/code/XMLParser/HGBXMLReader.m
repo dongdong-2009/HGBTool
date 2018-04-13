@@ -273,8 +273,9 @@ static NSString  *baseItem=@"";
         return NO;
     }
     if(![HGBXMLReader isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBXMLReader urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

@@ -210,8 +210,9 @@ static HGBImageLookTool *instance;
         return NO;
     }
     if(![HGBImageLookTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBImageLookTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

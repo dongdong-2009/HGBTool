@@ -680,8 +680,9 @@ expectedTotalBytes:(int64_t)expectedTotalBytes{
         return NO;
     }
     if(![HGBDownLoadTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBDownLoadTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

@@ -319,8 +319,9 @@
         return NO;
     }
     if(![HGBCompressedFileTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBCompressedFileTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

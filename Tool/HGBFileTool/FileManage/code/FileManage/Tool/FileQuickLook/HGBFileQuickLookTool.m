@@ -156,8 +156,9 @@ static HGBFileQuickLookTool *instance;
         return NO;
     }
     if(![HGBFileQuickLookTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBFileQuickLookTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

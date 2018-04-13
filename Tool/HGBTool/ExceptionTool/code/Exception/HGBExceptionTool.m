@@ -572,8 +572,9 @@ void uncaughtExceptionHandler(NSException *exception)
         return NO;
     }
     if(![HGBExceptionTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBExceptionTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

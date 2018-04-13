@@ -422,8 +422,9 @@ static HGBNetWorkTool *instance=nil;
         return NO;
     }
     if(![HGBNetWorkTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBNetWorkTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

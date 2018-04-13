@@ -286,8 +286,9 @@ static HGBAppCheckTool *instance=nil;
         return NO;
     }
     if(![HGBAppCheckTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBAppCheckTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

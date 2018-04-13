@@ -127,8 +127,9 @@
         return NO;
     }
     if(![HGBCallJSModel isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBCallJSModel urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

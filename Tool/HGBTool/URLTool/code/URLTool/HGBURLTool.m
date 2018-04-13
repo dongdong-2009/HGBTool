@@ -45,8 +45,9 @@
         return NO;
     }
     if(![HGBURLTool isURL:url]){
-        return nil;
+        return NO;
     }
+    url=[HGBURLTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

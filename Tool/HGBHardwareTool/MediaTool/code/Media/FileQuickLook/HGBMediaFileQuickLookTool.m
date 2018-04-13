@@ -249,8 +249,9 @@ static HGBMediaFileQuickLookTool *instance;
         return NO;
     }
     if(![HGBMediaFileQuickLookTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBMediaFileQuickLookTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

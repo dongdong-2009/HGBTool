@@ -74,41 +74,35 @@ static HGBDESEncryption *instance=nil;
         HGBLog(@"密钥不能为空");
     }
     [HGBDESEncryption shareInstance];
-    NSData* data = [string dataUsingEncoding:NSUTF8StringEncoding];
-    size_t plainTextBufferSize = [data length];
-    const void *vplainText = (const void *)[data bytes];
 
-    CCCryptorStatus ccStatus;
-    uint8_t *bufferPtr = NULL;
-    size_t bufferPtrSize = 0;
-    size_t movedBytes = 0;
-
-    bufferPtrSize = (plainTextBufferSize + kCCBlockSizeDES) & ~(kCCBlockSizeDES - 1);
-    bufferPtr = malloc( bufferPtrSize * sizeof(uint8_t));
-    memset((void *)bufferPtr, 0x0, bufferPtrSize);
+    NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
+    NSUInteger dataLength = [data length];
 
     const void *vkey = (const void *) [instance.key UTF8String];
 
     if(key&&key.length!=0){
         vkey=[key UTF8String];
     }
-    const void *vinitVec = (const void *) [instance.iv UTF8String];
 
-    ccStatus = CCCrypt(kCCEncrypt,
-                       kCCAlgorithmDES,
-                       kCCOptionPKCS7Padding,
-                       vkey,
-                       kCCKeySizeDES,
-                       vinitVec,
-                       vplainText,
-                       plainTextBufferSize,
-                       (void *)bufferPtr,
-                       bufferPtrSize,
-                       &movedBytes);
-
-    NSData *myData = [NSData dataWithBytes:(const void *)bufferPtr length:(NSUInteger)movedBytes];
-    NSString *result = [HGBBase64 stringByEncodingData:myData];
+    unsigned char buffer[1024];
+    memset(buffer, 0, sizeof(char));
+    size_t numBytesEncrypted = 0;
+    CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt, kCCAlgorithmDES,
+                                          kCCOptionPKCS7Padding,
+                                          vkey, kCCKeySizeDES,
+                                          (Byte *)[[[NSString stringWithFormat:@"%s",vkey] dataUsingEncoding:NSUTF8StringEncoding] bytes],
+                                          [data bytes], dataLength,
+                                          buffer, 1024,
+                                          &numBytesEncrypted);
+    NSString *result;
+    if (cryptStatus == kCCSuccess) {
+        NSData *myData = [NSData dataWithBytes:buffer length:(NSUInteger)numBytesEncrypted];
+        result =[HGBBase64 stringByEncodingData:myData];
+    }
     return result;
+
+
+
 }
 
 
@@ -128,42 +122,31 @@ static HGBDESEncryption *instance=nil;
         HGBLog(@"密钥不能为空");
     }
      [HGBDESEncryption shareInstance];
+
+
     NSData *encryptData = [HGBBase64 decodeData:[string dataUsingEncoding:NSUTF8StringEncoding]];
-    size_t plainTextBufferSize = [encryptData length];
-    const void *vplainText = [encryptData bytes];
 
-    CCCryptorStatus ccStatus;
-    uint8_t *bufferPtr = NULL;
-    size_t bufferPtrSize = 0;
-    size_t movedBytes = 0;
-
-    bufferPtrSize = (plainTextBufferSize + kCCBlockSizeDES) & ~(kCCBlockSizeDES - 1);
-    bufferPtr = malloc( bufferPtrSize * sizeof(uint8_t));
-    memset((void *)bufferPtr, 0x0, bufferPtrSize);
-
-    const void *vkey = (const void *) [instance.key UTF8String];
-    if(key&&key.length!=0){
-        vkey=[key UTF8String];
+    unsigned char buffer[1024];
+    memset(buffer, 0, sizeof(char));
+    size_t numBytesDecrypted = 0;
+    CCCryptorStatus cryptStatus = CCCrypt(kCCDecrypt, kCCAlgorithmDES,
+                                          kCCOptionPKCS7Padding,
+                                          [key UTF8String], kCCKeySizeDES,
+                                          (Byte *)[[key dataUsingEncoding:NSUTF8StringEncoding] bytes],
+                                          [encryptData bytes], [encryptData length],
+                                          buffer, 1024,
+                                          &numBytesDecrypted);
+    NSString *result;
+    if(cryptStatus == kCCSuccess) {
+        NSData *plaindata = [NSData dataWithBytes:buffer length:(NSUInteger)numBytesDecrypted];
+        result = [[NSString alloc]initWithData:plaindata encoding:NSUTF8StringEncoding];
     }
-    const void *vinitVec = (const void *) [instance.iv UTF8String];
-
-    ccStatus = CCCrypt(kCCDecrypt, kCCAlgorithm3DES,kCCOptionPKCS7Padding,
-                       vkey,kCCKeySizeDES,
-                       vinitVec,
-                       vplainText,
-                       plainTextBufferSize,
-                       (void *)bufferPtr,
-                       bufferPtrSize,
-                       &movedBytes);
-
-    NSString *result = [[NSString alloc] initWithData:[NSData dataWithBytes:(const void *)bufferPtr
-                                                                     length:(NSUInteger)movedBytes] encoding:NSUTF8StringEncoding];
     return result;
 }
 #pragma mark get
 -(NSString *)iv{
     if(_iv==nil){
-        _iv=@"huangguangbao@lx100$#365#$";
+        _iv=@"01234567";
     }
     return _iv;
 }

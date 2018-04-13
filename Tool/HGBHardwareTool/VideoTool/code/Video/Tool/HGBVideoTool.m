@@ -482,8 +482,9 @@ static HGBVideoTool *instance=nil;
         return NO;
     }
     if(![HGBVideoTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBVideoTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

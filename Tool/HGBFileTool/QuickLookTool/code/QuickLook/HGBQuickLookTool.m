@@ -153,8 +153,9 @@ static HGBQuickLookTool *instance;
         return NO;
     }
     if(![HGBQuickLookTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBQuickLookTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

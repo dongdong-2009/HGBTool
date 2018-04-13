@@ -171,8 +171,9 @@ static HGBHTMLToPDFTool *instance=nil;
         return NO;
     }
     if(![HGBHTMLToPDFTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBHTMLToPDFTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

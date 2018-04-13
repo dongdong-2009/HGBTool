@@ -45,8 +45,9 @@
         return NO;
     }
     if(![HGBSandBoxTool isURL:url]){
-        return nil;
+        return NO;
     }
+    url=[HGBSandBoxTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

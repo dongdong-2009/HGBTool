@@ -236,8 +236,9 @@
         return NO;
     }
     if(![HGBClearStorageTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBClearStorageTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

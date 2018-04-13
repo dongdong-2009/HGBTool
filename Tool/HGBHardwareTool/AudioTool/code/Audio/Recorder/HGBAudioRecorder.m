@@ -324,8 +324,9 @@
         return NO;
     }
     if(![self isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[self urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

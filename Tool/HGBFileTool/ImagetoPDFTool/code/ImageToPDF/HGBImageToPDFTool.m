@@ -157,8 +157,9 @@ void HGBCreatePDFFile (CFDataRef data,CGRect pageRect,const char *filepath, CFSt
         return NO;
     }
     if(![HGBImageToPDFTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBImageToPDFTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

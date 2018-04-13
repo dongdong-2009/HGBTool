@@ -422,8 +422,9 @@ static HGBAirPrintTool *instance=nil;
         return NO;
     }
     if(![HGBAirPrintTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBAirPrintTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

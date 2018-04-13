@@ -975,8 +975,9 @@ static HGBAudioTool *instance=nil;
         return NO;
     }
     if(![HGBAudioTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBAudioTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

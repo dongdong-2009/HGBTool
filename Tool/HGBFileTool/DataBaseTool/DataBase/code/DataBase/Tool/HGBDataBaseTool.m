@@ -1178,8 +1178,9 @@ static HGBDataBaseTool *instance=nil;
         return NO;
     }
     if(![HGBDataBaseTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBDataBaseTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

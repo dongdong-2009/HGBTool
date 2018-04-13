@@ -207,8 +207,9 @@ static HGBFileOutAppOpenFileTool *instance=nil;
         return NO;
     }
     if(![HGBFileOutAppOpenFileTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBFileOutAppOpenFileTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

@@ -33,7 +33,7 @@
         HGBLog(@"参数不能为空");
         return NO;
     }
-    if(!([value isKindOfClass:[NSString class]]||[value isKindOfClass:[NSNumber class]]||[value isKindOfClass:[NSArray class]]||[value isKindOfClass:[NSDictionary class]])){
+    if(!([value isKindOfClass:[NSString class]]||[value isKindOfClass:[NSNumber class]]||[value isKindOfClass:[NSArray class]]||[value isKindOfClass:[NSDictionary class]]||[value isKindOfClass:[NSData class]])){
         HGBLog(@"参数格式不对");
         return NO;
     }
@@ -89,7 +89,7 @@
         HGBLog(@"参数不能为空");
         return NO;
     }
-    if(!([value isKindOfClass:[NSString class]]||[value isKindOfClass:[NSNumber class]]||[value isKindOfClass:[NSArray class]]||[value isKindOfClass:[NSDictionary class]])){
+    if(!([value isKindOfClass:[NSString class]]||[value isKindOfClass:[NSNumber class]]||[value isKindOfClass:[NSArray class]]||[value isKindOfClass:[NSDictionary class]]||[value isKindOfClass:[NSData class]])){
         HGBLog(@"参数格式不对");
         return NO;
     }else{
@@ -140,7 +140,7 @@
 +(NSString *)objectEncapsulation:(id)object{
     NSString *string;
     if([object isKindOfClass:[NSString class]]){
-        string=object;
+        string=[NSString stringWithFormat:@"string://%@",object];
     }else if([object isKindOfClass:[NSArray class]]){
         object=[HGBDefaultsTool ObjectToJSONString:object];
         string=[@"array://" stringByAppendingString:object];
@@ -149,9 +149,17 @@
         string=[@"dictionary://" stringByAppendingString:object];
     }else if([object isKindOfClass:[NSNumber class]]){
         string=[NSString stringWithFormat:@"number://%@",object];
+    }else if([object isKindOfClass:[NSData class]]){
+        NSData *encodeData =object;
+        NSString *base64String = [encodeData base64EncodedStringWithOptions:0];
+        string=[NSString stringWithFormat:@"data://%@",base64String];
     }else{
         string=object;
     }
+
+
+
+
     return string;
 }
 /**
@@ -162,7 +170,10 @@
  */
 +(id)stringAnalysis:(NSString *)string{
     id object;
-    if([string hasPrefix:@"array://"]){
+    if([string hasPrefix:@"string://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"string://" withString:@""];
+        object=string;
+    }else if([string hasPrefix:@"array://"]){
         string=[string stringByReplacingOccurrencesOfString:@"array://" withString:@""];
         object=[HGBDefaultsTool JSONStringToObject:string];
     }else if ([string hasPrefix:@"dictionary://"]){
@@ -171,6 +182,10 @@
     }else if ([string hasPrefix:@"number://"]){
         string=[string stringByReplacingOccurrencesOfString:@"number://" withString:@""];
         object=[[NSNumber alloc]initWithFloat:string.floatValue];
+    }else if ([string hasPrefix:@"number://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"data://" withString:@""];
+        NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:string options:0];
+        object=decodedData;
     }else{
         object=string;
     }

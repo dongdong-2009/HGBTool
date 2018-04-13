@@ -1179,8 +1179,9 @@ static HGBMediaTool *instance=nil;
         return NO;
     }
     if(![HGBMediaTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBMediaTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

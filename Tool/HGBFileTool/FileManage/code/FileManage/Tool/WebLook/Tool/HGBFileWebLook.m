@@ -194,8 +194,9 @@ static HGBFileWebLook *instance;
         return NO;
     }
     if(![HGBFileWebLook isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBFileWebLook urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

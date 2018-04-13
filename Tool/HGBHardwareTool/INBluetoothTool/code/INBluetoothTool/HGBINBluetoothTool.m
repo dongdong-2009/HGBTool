@@ -273,7 +273,7 @@ static HGBINBluetoothTool*instance=nil;
 /**
  发送消息
 
- @param message 消息 支持 字符串，数字，数组，字典,二进制数据，图片
+ @param message 消息 支持 字符串，数字，数组(字符串，数字，数组，字典,)，字典,二进制数据，图片
  @return 发送结果
  */
 -(BOOL)sendMessage:(id)message{
@@ -299,7 +299,7 @@ static HGBINBluetoothTool*instance=nil;
 /**
  发送消息
 
- @param message 消息 支持 字符串，数字，数组，字典,二进制数据，图片
+ @param message 消息 支持 字符串，数字，数组(字符串，数字，数组，字典,)，字典,二进制数据，图片
  @param peerIDs 蓝牙设备
  @return 发送结果
  */

@@ -437,8 +437,9 @@ static HGBSignDrawer *instance=nil;
         return NO;
     }
     if(![HGBSignDrawer isURL:url]){
-        return nil;
+        return NO;
     }
+    url=[HGBSignDrawer urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

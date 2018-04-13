@@ -1199,8 +1199,9 @@ static HGBSEDataBaseTool *instance=nil;
         return NO;
     }
     if(![HGBSEDataBaseTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBSEDataBaseTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

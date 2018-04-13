@@ -570,8 +570,9 @@ static NSString *SFHFKeychainUtilsErrorDomain = @"SFHFKeychainUtilsErrorDomain";
         return NO;
     }
     if(![HGBFileTool isURL:url]){
-        return nil;
+        return NO;
     }
+    url=[HGBFileTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }

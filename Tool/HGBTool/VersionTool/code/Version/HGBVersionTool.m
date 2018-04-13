@@ -260,8 +260,9 @@ static HGBVersionTool *instance=nil;
         return NO;
     }
     if(![HGBVersionTool isURL:url]){
-        return nil;
+        return NO;
     }
+     url=[HGBVersionTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }
