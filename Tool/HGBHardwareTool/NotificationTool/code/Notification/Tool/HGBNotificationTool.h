@@ -156,7 +156,50 @@ typedef void (^HGBNotificationToolNotiReslutBlock )(BOOL status,NSDictionary *re
  */
 -(NSString *)getRemoteNotificationDeviceToken;
 
+#pragma mark 文件存储消息
 
+/**
+ 获取消息集合
+
+ @return 消息集合
+ */
+- (NSArray *)getNotifications;
+/**
+ * 根据状态获取消息
+ *
+ *  @param status 状态
+ * @return 消息集合
+ */
+- (NSArray *)getNotificationsByStatus:(NSString *)status;
+/**
+ * 根据id获取消息
+ *
+ *  @param notificationId 消息id
+ *   @return 消息
+ */
+- (NSDictionary *)getNotificationById:(NSString *)notificationId;
+/**
+ * 消息修改
+ *
+ *  @param notificationId 消息id
+ *  @param status 消息状态
+ *  @param notification 消息
+ *   @return 结果
+ */
+- (BOOL)changeNotificationWithNotificationId:(NSString *)notificationId andWithStatus:(NSString *)status andWithNotification:(NSDictionary *)notification;
+/**
+ * 删除一条消息
+ *
+ *  @param notificationId 消息id
+ *   @return 结果
+ */
+- (BOOL)deleteNotificationById:(NSString *)notificationId;
+/**
+ * 删除所有消息
+ *
+ *   @return 结果
+ */
+- (BOOL)deleteAllNotification;
 #pragma mark 应用角标
 /**
  设置应用角标

@@ -32,6 +32,13 @@
  @return 数据库类
  */
 +(instancetype)shareInstance;
+#pragma mark 重启数据库
+/**
+ 重启数据库
+
+ @return 结果
+ */
+-(BOOL)reset;
 
 #pragma mark 打开数据库
 /**

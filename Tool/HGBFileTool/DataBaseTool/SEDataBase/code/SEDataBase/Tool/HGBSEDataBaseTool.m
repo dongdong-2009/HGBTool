@@ -72,13 +72,23 @@ static HGBSEDataBaseTool *instance=nil;
 
         NSString *bundleId=[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
         
-        NSString *dataBasePath=[NSString stringWithFormat:@"document://%@data.db",bundleId];
+        NSString *dataBasePath=[NSString stringWithFormat:@"document://%@sedatabase.db",bundleId];
         
         [instance openDataBaseWithSource:dataBasePath];
     }
     return instance;
 }
+#pragma mark 重启数据库
+/**
+ 重启数据库
 
+ @return 结果
+ */
+-(BOOL)reset{
+    NSString *bundleId=[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
+    NSString *dataBasePath=[NSString stringWithFormat:@"document://%@database.db",bundleId];
+    return [self openDataBaseWithSource:dataBasePath];
+}
 #pragma mark 打开数据库
 /**
  打开数据库-数据库仅能打开一个,该数据打开时上一数据库关闭,上一数据库关闭失败，该数据打开失败
@@ -142,13 +152,13 @@ static HGBSEDataBaseTool *instance=nil;
             self.openFlag=NO;
             self.dataBaseEncrptFlag=NO;
             self.encryptDataDic=[NSMutableDictionary dictionary];
-            instance=nil;
+
             return YES;
         }
     }else{
 //        HGBLog(@"关闭数据库成功");
         self.openFlag=NO;
-        instance=nil;
+       
         
         return YES;
     }
@@ -164,46 +174,9 @@ static HGBSEDataBaseTool *instance=nil;
 {
     self.dataBaseEncrptFlag=YES;
     self.dataBaseEncrptKey=key;
-//    [self Encrypt];
-//    [self openDataBaseWithPath:self.dbPath];
     return YES;
 }
-#pragma mark  数据库加密解密
--(void)Encrypt{
-        if(self.dataBaseEncrptFlag){
-            NSString *flag=[HGBSEDataBaseTool getDefaultsWithKey:dbPath];
-            if(!(flag&&[flag isEqualToString:@"1"])){
-                [self encryptWithKey:self.dataBaseEncrptKey];
-                [HGBSEDataBaseTool saveDefaultsValue:@"1" WithKey:dbPath];
-            }
-        }
-    
-}
--(void)Decrypt{
-        if(self.dataBaseEncrptFlag){
-            NSString *flag=[HGBSEDataBaseTool getDefaultsWithKey:self.dataBaseEncrptKey];
-    
-            if(flag&&[flag isEqualToString:@"1"]){
-                [self decryptWithKey:[NSString stringWithFormat:@"%@",self.dataBaseEncrptKey]];
-               [HGBSEDataBaseTool saveDefaultsValue:@"0" WithKey:self.dataBaseEncrptKey];
-            }
-        }
-    
-}
--(void)encryptWithKey:(NSString *)key{
-    if(self.dataBaseEncrptFlag){
-        NSData *fileData=[[NSData alloc]initWithContentsOfFile:self.dbPath];
-        fileData=[HGBSEDataBaseTool encryptDataWithAES256:fileData andWithKey:key];
-        [fileData writeToFile:self.dbPath atomically:YES];
-    }
-}
--(void)decryptWithKey:(NSString *)key{
-    if(self.dataBaseEncrptFlag){
-        NSData *fileData=[[NSData alloc]initWithContentsOfFile:self.dbPath];
-        fileData=[HGBSEDataBaseTool decryptDataWithAES256:fileData andWithKey:key];
-        [fileData writeToFile:self.dbPath atomically:YES];
-    }
-}
+
 #pragma mark 表格字段加密
 /**
  设置数据库表中数据加密标志-打开数据库需重新设置
@@ -511,18 +484,13 @@ static HGBSEDataBaseTool *instance=nil;
     
     NSArray *names=[nodes allKeys];
     for(NSString *name in names){
+        id value=[nodes objectForKey:name];
+        NSString *string=[HGBSEDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            id value=[nodes objectForKey:name];
+            [dic setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+        }else{
+            [dic setObject:string forKey:name];
 
-            if([value isKindOfClass:[NSData class]]){
-                NSData *data=(NSData *)value;
-                [dic setObject:[HGBSEDataBaseTool encryptDataWithAES256:data andWithKey:key] forKey:name];
-                
-            }else{
-                NSString *string=[NSString stringWithFormat:@"%@",value];
-                
-                [dic setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
-            }
         }
     }
 
@@ -584,17 +552,13 @@ static HGBSEDataBaseTool *instance=nil;
     
     NSArray *names=[conditionDic allKeys];
     for(NSString *name in names){
-        
+        id value=[conditionDic objectForKey:name];
+        NSString *string=[HGBSEDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            id value=[conditionDic objectForKey:name];
-            if([value isKindOfClass:[NSData class]]){
-                NSData *data=(NSData *)value;
-                [dic setObject:[HGBSEDataBaseTool encryptDataWithAES256:data andWithKey:key] forKey:name];
-                
-            }else{
-                NSString *string=[NSString stringWithFormat:@"%@",value];
-                [dic setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
-            }
+            [dic setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+        }else{
+            [dic setObject:string forKey:name];
+
         }
     }
     
@@ -655,17 +619,13 @@ static HGBSEDataBaseTool *instance=nil;
     //加密条件
     NSArray *names_condition=[conditionDic allKeys];
     for(NSString *name in names_condition){
-        
+        id value=[conditionDic objectForKey:name];
+        NSString *string=[HGBSEDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            id value=[conditionDic objectForKey:name];
-            if([value isKindOfClass:[NSData class]]){
-                NSData *data=(NSData *)value;
-                [dic_condition setObject:[HGBSEDataBaseTool encryptDataWithAES256:data andWithKey:key] forKey:name];
-                
-            }else{
-                NSString *string=[NSString stringWithFormat:@"%@",value];
-                [dic_condition setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
-            }
+            [dic_condition setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+        }else{
+            [dic_condition setObject:string forKey:name];
+
         }
     }
     //加密修改内容
@@ -674,16 +634,13 @@ static HGBSEDataBaseTool *instance=nil;
     NSArray *names_change=[changeDic allKeys];
     for(NSString *name in names_change){
         
+        id value=[changeDic objectForKey:name];
+        NSString *string=[HGBSEDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            id value=[changeDic objectForKey:name];
-            if([value isKindOfClass:[NSData class]]){
-                NSData *data=(NSData *)value;
-                [dic_change setObject:[HGBSEDataBaseTool encryptDataWithAES256:data andWithKey:key] forKey:name];
-                
-            }else{
-                NSString *string=[NSString stringWithFormat:@"%@",value];
-                [dic_change setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
-            }
+            [dic_change setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+        }else{
+            [dic_change setObject:string forKey:name];
+
         }
     }
     //sql
@@ -757,17 +714,13 @@ static HGBSEDataBaseTool *instance=nil;
     
     NSArray *names=[conditionDic allKeys];
     for(NSString *name in names){
-        
+        id value=[conditionDic objectForKey:name];
+        NSString *string=[HGBSEDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            id value=[conditionDic objectForKey:name];
-            if([value isKindOfClass:[NSData class]]){
-                NSData *data=(NSData *)value;
-                [dic setObject:[HGBSEDataBaseTool encryptDataWithAES256:data andWithKey:key] forKey:name];
-                
-            }else{
-                NSString *string=[NSString stringWithFormat:@"%@",value];
-                [dic setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
-            }
+            [dic setObject:[HGBSEDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+        }else{
+            [dic setObject:string forKey:name];
+
         }
     }
     
@@ -800,21 +753,16 @@ static HGBSEDataBaseTool *instance=nil;
                 NSArray *subnames=[nameDic allKeys];
                 if(subnames.count!=0){
                     NSString *subname=[nameDic objectForKey:@"name"];
-                    NSString *type=[nameDic objectForKey:@"type"];
-                    if([type isEqualToString:@"text"]){
-                        
-                        
-                        
-                    }else{
-                        
-                    }
                     const unsigned char *value=sqlite3_column_text(stmt, i);
                     NSString *valueStr=[NSString stringWithFormat:@"%s",value];
+                    NSString *string;
                     if([encryptTableDataArr containsObject:subname]){
-                        [dic setObject:[HGBSEDataBaseTool decryptStringWithAES256:valueStr andWithKey:key] forKey:subname];
+                        string=[HGBSEDataBaseTool decryptStringWithAES256:valueStr andWithKey:key];
                     }else{
-                        [dic setObject:valueStr forKey:subname];
+                        string=valueStr;
                     }
+                    id lastvalue=[HGBSEDataBaseTool stringAnalysis:string];
+                    [dic setObject:lastvalue forKey:subname];
                     
                 }
                 
@@ -966,82 +914,7 @@ static HGBSEDataBaseTool *instance=nil;
     NSString *decryptString= [HGBSEDataBaseTool AES256StringDecrypt:string WithKey:key];
     return decryptString;
 }
-#pragma mark AES256-data
-/**
- AES256加密
- 
- @param data 数据
- @param key  加密密钥
- @return 加密后数据
- */
-+(NSData *)encryptDataWithAES256:(NSData *)data andWithKey:(NSString *)key{
-    if(key==nil||key.length==0){
-        return nil;
-    }
-    NSData *encryptData= [HGBSEDataBaseTool AES256DataEncrypt:data WithKey:key];
-    return encryptData;
-}
-/**
- AES256解密
- 
- @param data 数据
- @param key  解密密钥
- @return 解密后数据
- */
-+(NSData *)decryptDataWithAES256:(NSData *)data andWithKey:(NSString *)key{
-    if(key==nil||key.length==0){
-        return nil;
-    }
-    NSData *decryptData= [HGBSEDataBaseTool AES256DataEncrypt:data WithKey:key];
-    return decryptData;
-}
-#pragma mark AES256-data
-+ (NSData *)AES256DataEncrypt:(NSData *)data WithKey:(NSString *)key   //加密
-{
-    char keyPtr[kCCKeySizeAES256+1];
-    bzero(keyPtr, sizeof(keyPtr));
-    [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
-    NSUInteger dataLength = [data length];
-    size_t bufferSize = dataLength + kCCBlockSizeAES128;
-    void *buffer = malloc(bufferSize);
-    size_t numBytesEncrypted = 0;
-    CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt, kCCAlgorithmAES128,
-                                          kCCOptionPKCS7Padding | kCCOptionECBMode,
-                                          keyPtr, kCCBlockSizeAES128,
-                                          NULL,
-                                          [data bytes], dataLength,
-                                          buffer, bufferSize,
-                                          &numBytesEncrypted);
-    if (cryptStatus == kCCSuccess) {
-        return [NSData dataWithBytesNoCopy:buffer length:numBytesEncrypted];
-    }
-    free(buffer);
-    return nil;
-}
 
-
-- (NSData *)AES256DataDecrypt:(NSData *)data WithKey:(NSString *)key   //解密
-{
-    char keyPtr[kCCKeySizeAES256+1];
-    bzero(keyPtr, sizeof(keyPtr));
-    [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
-    NSUInteger dataLength = [data length];
-    size_t bufferSize = dataLength + kCCBlockSizeAES128;
-    void *buffer = malloc(bufferSize);
-    size_t numBytesDecrypted = 0;
-    CCCryptorStatus cryptStatus = CCCrypt(kCCDecrypt, kCCAlgorithmAES128,
-                                          kCCOptionPKCS7Padding | kCCOptionECBMode,
-                                          keyPtr, kCCBlockSizeAES128,
-                                          NULL,
-                                          [data bytes], dataLength,
-                                          buffer, bufferSize,
-                                          &numBytesDecrypted);
-    if (cryptStatus == kCCSuccess) {
-        return [NSData dataWithBytesNoCopy:buffer length:numBytesDecrypted];
-    }
-    free(buffer);
-    return nil;
-}
 #pragma mark AES256-string
 + (NSString *)AES256StringEncrypt:(NSString *)string  WithKey:(NSString *)keyString
 {
@@ -1140,6 +1013,198 @@ static HGBSEDataBaseTool *instance=nil;
     
     return [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
     
+}
+#pragma mark object-string
+/**
+ object编码
+
+ @param object 对象
+ @return 编码字符串
+ */
++(NSString *)objectEncapsulation:(id)object{
+    NSString *string;
+    if([object isKindOfClass:[NSString class]]){
+        string=[NSString stringWithFormat:@"%@",object];
+    }else if([object isKindOfClass:[NSArray class]]){
+        object=[HGBSEDataBaseTool ObjectToJSONString:object];
+        string=[@"array://" stringByAppendingString:object];
+    }else if([object isKindOfClass:[NSDictionary class]]){
+        object=[HGBSEDataBaseTool ObjectToJSONString:object];
+        string=[@"dictionary://" stringByAppendingString:object];
+    }else if([object isKindOfClass:[NSNumber class]]){
+        string=[NSString stringWithFormat:@"number://%@",object];
+    }else if([object isKindOfClass:[NSData class]]){
+        NSData *encodeData =object;
+        NSString *base64String = [encodeData base64EncodedStringWithOptions:0];
+        string=[NSString stringWithFormat:@"data://%@",base64String];
+    }else{
+        string=object;
+    }
+
+
+
+
+    return string;
+}
+/**
+ 字符串解码
+
+ @param string 字符串
+ @return 对象
+ */
++(id)stringAnalysis:(NSString *)string{
+    id object;
+    if([string hasPrefix:@"string://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"string://" withString:@""];
+        object=string;
+    }else if([string hasPrefix:@"array://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"array://" withString:@""];
+        object=[HGBSEDataBaseTool JSONStringToObject:string];
+    }else if ([string hasPrefix:@"dictionary://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"dictionary://" withString:@""];
+        object=[HGBSEDataBaseTool JSONStringToObject:string];
+    }else if ([string hasPrefix:@"number://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"number://" withString:@""];
+        object=[[NSNumber alloc]initWithFloat:string.floatValue];
+    }else if ([string hasPrefix:@"number://"]){
+        string=[string stringByReplacingOccurrencesOfString:@"data://" withString:@""];
+        NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:string options:0];
+        object=decodedData;
+    }else{
+        object=string;
+    }
+    return object;
+
+}
+#pragma mark json
+/**
+ 把Json对象转化成json字符串
+
+ @param object json对象
+ @return json字符串
+ */
++ (NSString *)ObjectToJSONString:(id)object
+{
+
+    if(!([object isKindOfClass:[NSDictionary class]]||[object isKindOfClass:[NSArray class]]||[object isKindOfClass:[NSString class]])){
+        return nil;
+    }
+    if([object isKindOfClass:[NSString class]]){
+        return object;
+    }
+    NSData * jsonData = [NSJSONSerialization dataWithJSONObject:object options:0 error:nil];
+    NSString * myString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    return myString;
+}
+/**
+ 把Json字符串转化成json对象
+
+ @param jsonString json字符串
+ @return json字符串
+ */
++ (id)JSONStringToObject:(NSString *)jsonString{
+    if(![jsonString isKindOfClass:[NSString class]]){
+        return nil;
+    }
+    jsonString=[HGBSEDataBaseTool jsonStringHandle:jsonString];
+    //    NSLog(@"%@",jsonString);
+    NSError *error = nil;
+    NSData  *data=[jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    if(jsonString.length>0&&[[jsonString substringToIndex:1] isEqualToString:@"{"]){
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+        if(error){
+            HGBLog(@"%@",error);
+            return jsonString;
+        }else{
+            return dic;
+        }
+    }else if(jsonString.length>0&&[[jsonString substringToIndex:1] isEqualToString:@"["]){
+        NSArray *array = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+        if(error){
+            HGBLog(@"%@",error);
+            return jsonString;
+        }else{
+            return array;
+        }
+    }else{
+        return jsonString;
+    }
+
+
+}
+/**
+ json字符串处理
+
+ @param jsonString 字符串处理
+ @return 处理后字符串
+ */
++(NSString *)jsonStringHandle:(NSString *)jsonString{
+    NSString *string=jsonString;
+    //大括号
+
+    //中括号
+    while ([string containsString:@"【"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"【" withString:@"]"];
+    }
+    while ([string containsString:@"】"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"】" withString:@"]"];
+    }
+
+    //小括弧
+    while ([string containsString:@"（"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"（" withString:@"("];
+    }
+
+    while ([string containsString:@"）"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"）" withString:@")"];
+    }
+
+
+    while ([string containsString:@"("]) {
+        string=[string stringByReplacingOccurrencesOfString:@"(" withString:@"["];
+    }
+
+    while ([string containsString:@")"]) {
+        string=[string stringByReplacingOccurrencesOfString:@")" withString:@"]"];
+    }
+
+
+    //逗号
+    while ([string containsString:@"，"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"，" withString:@","];
+    }
+    while ([string containsString:@";"]) {
+        string=[string stringByReplacingOccurrencesOfString:@";" withString:@","];
+    }
+    while ([string containsString:@"；"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"；" withString:@","];
+    }
+    //引号
+    while ([string containsString:@"“"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"“" withString:@"\""];
+    }
+    while ([string containsString:@"”"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"”" withString:@"\""];
+    }
+    while ([string containsString:@"‘"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"‘" withString:@"\""];
+    }
+    while ([string containsString:@"'"]) {
+        string=[string stringByReplacingOccurrencesOfString:@"'" withString:@"\""];
+    }
+    //冒号
+    while ([string containsString:@"："]) {
+        string=[string stringByReplacingOccurrencesOfString:@"：" withString:@":"];
+    }
+    //等号
+    while ([string containsString:@"="]) {
+        string=[string stringByReplacingOccurrencesOfString:@"=" withString:@":"];
+    }
+    while ([string containsString:@"="]) {
+        string=[string stringByReplacingOccurrencesOfString:@"=" withString:@":"];
+    }
+    return string;
+
 }
 #pragma mark 文件
 /**

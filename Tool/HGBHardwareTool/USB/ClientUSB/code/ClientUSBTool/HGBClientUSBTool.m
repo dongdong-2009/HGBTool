@@ -164,7 +164,7 @@ static HGBClientUSBTool *instance=nil;
 
 // Invoked when a new frame has arrived on a channel.
 - (void)ioFrameChannel:(PTChannel*)channel didReceiveFrameOfType:(uint32_t)type tag:(uint32_t)tag payload:(PTData*)payload {
-    //NSLog(@"didReceiveFrameOfType: %u, %u, %@", type, tag, payload);
+    //HGBLog(@"didReceiveFrameOfType: %u, %u, %@", type, tag, payload);
     if (type == PTExampleFrameTypeTextMessage) {
         PTExampleTextFrame *textFrame = (PTExampleTextFrame*)payload.data;
         textFrame->length = ntohl(textFrame->length);
@@ -411,13 +411,13 @@ static HGBClientUSBTool *instance=nil;
         return nil;
     }
     jsonString=[HGBClientUSBTool jsonStringHandle:jsonString];
-    //    NSLog(@"%@",jsonString);
+    //    HGBLog(@"%@",jsonString);
     NSError *error = nil;
     NSData  *data=[jsonString dataUsingEncoding:NSUTF8StringEncoding];
     if(jsonString.length>0&&[[jsonString substringToIndex:1] isEqualToString:@"{"]){
         NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
         if(error){
-            NSLog(@"%@",error);
+            HGBLog(@"%@",error);
             return jsonString;
         }else{
             return dic;
@@ -425,7 +425,7 @@ static HGBClientUSBTool *instance=nil;
     }else if(jsonString.length>0&&[[jsonString substringToIndex:1] isEqualToString:@"["]){
         NSArray *array = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
         if(error){
-            NSLog(@"%@",error);
+            HGBLog(@"%@",error);
             return jsonString;
         }else{
             return array;

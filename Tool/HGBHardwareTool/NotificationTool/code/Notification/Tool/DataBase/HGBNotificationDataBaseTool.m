@@ -1,16 +1,18 @@
 //
-//  HGBDataBaseTool.m
-//  测试
+//  HGBNotificationDataBaseTool.m
+//  CordovaWork
 //
-//  Created by huangguangbao on 2017/6/13.
-//  Copyright © 2017年 agree.com.cn. All rights reserved.
+//  Created by huangguangbao on 2018/4/21.
 //
 
-#import "HGBDataBaseTool.h"
-#import <sqlite3.h>
+#import "HGBNotificationDataBaseTool.h"
+
+
+
+#import <UIKit/UIKit.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <CommonCrypto/CommonCryptor.h>
-#import <UIKit/UIKit.h>
+#import <sqlite3.h>
 
 #ifdef HGBLogFlag
 #define HGBLog(FORMAT,...) fprintf(stderr,"**********HGBErrorLog-satrt***********\n{\n文件名称:%s;\n方法:%s;\n行数:%d;\n提示:%s\n}\n**********HGBErrorLog-end***********\n",[[[NSString stringWithUTF8String:__FILE__] lastPathComponent] UTF8String],[[NSString stringWithUTF8String:__func__] UTF8String], __LINE__, [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
@@ -18,7 +20,8 @@
 #define HGBLog(...);
 #endif
 
-@interface HGBDataBaseTool()
+
+@interface HGBNotificationDataBaseTool()
 /**
  数据库
  */
@@ -54,28 +57,27 @@
  */
 @property(strong,nonatomic)NSMutableDictionary *encryptKeyDic;
 
-
 @end
 
-@implementation HGBDataBaseTool
+@implementation HGBNotificationDataBaseTool
 @synthesize dbPath,db;
-static HGBDataBaseTool *instance=nil;
+static HGBNotificationDataBaseTool *instance=nil;
 #pragma mark 单例
 /**
  数据库单例
- 
+
  @return 数据库类
  */
 +(instancetype)shareInstance{
     if(instance==nil){
-        instance=[[HGBDataBaseTool alloc]init];
-        
-        
+        instance=[[HGBNotificationDataBaseTool alloc]init];
+
+
 
         NSString *bundleId=[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
-        
-        NSString *dataBasePath=[NSString stringWithFormat:@"document://%@database.db",bundleId];
-        
+
+        NSString *dataBasePath=[NSString stringWithFormat:@"document://%@Notification.db",bundleId];
+
         [instance openDataBaseWithSource:dataBasePath];
     }
     return instance;
@@ -102,27 +104,29 @@ static HGBDataBaseTool *instance=nil;
     if (source==nil||source.length==0) {
         return NO;
     }
-    
+
     BOOL closeFlag=YES;
     if(self.openFlag){
-       closeFlag=[self closeDataBase];
+        closeFlag=[self closeDataBase];
     }
-    NSString *url=[HGBDataBaseTool urlAnalysis:source];
+    NSString *url=[HGBNotificationDataBaseTool urlAnalysis:source];
 
-    NSString * dataBasePath=[[NSURL URLWithString:url]path];
+    NSString* dataBasePath=[[NSURL URLWithString:url]path];
+
     NSString* directoryPath=[dataBasePath stringByDeletingLastPathComponent];
-    if(![HGBDataBaseTool isExitAtFilePath:directoryPath]){
-        [HGBDataBaseTool createDirectoryPath:directoryPath];
+    if(![HGBNotificationDataBaseTool isExitAtFilePath:directoryPath]){
+        [HGBNotificationDataBaseTool createDirectoryPath:directoryPath];
     }
     if(closeFlag){
         if(sqlite3_open([dataBasePath UTF8String], &db)!=SQLITE_OK){
-            HGBLog(@"打开数据库失败-关闭上个数据库成功");
+            //            HGBLog(@"打开数据库失败-关闭上个数据库成功");
             self.openFlag=NO;
             return NO;
         }else{
-//            HGBLog(@"打开数据库成功");
-            dbPath=dataBasePath;
+            //            HGBLog(@"打开数据库成功");
             self.openFlag=YES;
+            self.dbPath=[NSString stringWithFormat:@"%@",dataBasePath];
+
             return YES;
         }
     }else{
@@ -130,12 +134,14 @@ static HGBDataBaseTool *instance=nil;
         self.openFlag=NO;
         return NO;
     }
-    
+
 }
 #pragma mark 关闭数据库
+
+
 /**
  关闭数据库
- 
+
  @return 关闭结果
  */
 -(BOOL)closeDataBase{
@@ -145,8 +151,8 @@ static HGBDataBaseTool *instance=nil;
             self.openFlag=YES;
             return NO;
         }else{
-            
-//            HGBLog(@"关闭数据库成功");
+
+            //            HGBLog(@"关闭数据库成功");
             self.openFlag=NO;
             self.dataBaseEncrptFlag=NO;
             self.encryptDataDic=[NSMutableDictionary dictionary];
@@ -154,10 +160,10 @@ static HGBDataBaseTool *instance=nil;
             return YES;
         }
     }else{
-//        HGBLog(@"关闭数据库成功");
+        //        HGBLog(@"关闭数据库成功");
         self.openFlag=NO;
-        
-        
+
+
         return YES;
     }
 }
@@ -165,39 +171,27 @@ static HGBDataBaseTool *instance=nil;
 
 /**
  设置数据库加密标志-打开数据库需重新设置
- 
+
  @param key 加密密钥
  */
 -(BOOL)encryptDataBaseWithKey:(NSString *)key
 {
-    if (key==nil||key.length==0) {
-        HGBLog(@"秘钥不能为空");
-        return NO;
-    }
     self.dataBaseEncrptFlag=YES;
     self.dataBaseEncrptKey=key;
-//    const char* keystr= [key UTF8String];
-//    sqlite3_key(db, keystr, (int)strlen(keystr));
-    if (sqlite3_exec(db, (const char*) "SELECT count(*) FROM sqlite_master;", NULL, NULL, NULL) == SQLITE_OK){
-//        HGBLog(@"数据库加密成功!");
-        return YES;
-    }else{
-        HGBLog(@"数据库加密失败!");
-        return NO;
-    }
+    return YES;
 }
 
+#pragma mark 表格字段加密
 /**
  设置数据库表中数据加密标志-打开数据库需重新设置
- 
+
  @param valueKeys  加密字段
  @param key 加密密钥
  @param tableName 表明
- 
+
  @return 设置结果
  */
 -(BOOL)encryptTableWithValueKeys:(NSArray *)valueKeys andWithEncryptSecretKey:(NSString *)key inTableName:(NSString *)tableName{
-    
     if(tableName==nil||tableName.length==0){
         HGBLog(@"设置表格及其加密字段失败");
         return NO;
@@ -210,10 +204,10 @@ static HGBDataBaseTool *instance=nil;
         HGBLog(@"设置表格及其加密字段失败");
         return NO;
     }
-    
+
     [self.encryptDataDic setObject:valueKeys forKey:tableName];
     [self.encryptKeyDic setObject:key forKey:tableName];
-//    HGBLog(@"设置表格及其加密字段成功");
+    //    HGBLog(@"设置表格及其加密字段成功");
     return YES;
 }
 
@@ -222,10 +216,9 @@ static HGBDataBaseTool *instance=nil;
 
 
 
-
 /**
  创建表格-默认text类型
- 
+
  @param tableName 表名
  @param keys 字段名集合，可以包含主键名-默认为文本类型-不可为空
  @param primarykey 主键字段名
@@ -243,7 +236,7 @@ static HGBDataBaseTool *instance=nil;
         HGBLog(@"创建表格失败");
         return NO;
     }
-    
+
     //sql
     NSString *sqlStr=[NSString stringWithFormat:@"create table if not exists %@(%@ integer primary key autoincrement",tableName,primarykey];
     for(NSString *key in keys){
@@ -252,13 +245,13 @@ static HGBDataBaseTool *instance=nil;
         }
     }
     sqlStr=[NSString stringWithFormat:@"%@)",sqlStr];
-    
+
     char *error;
     const char *sql=[sqlStr UTF8String];
-//    HGBLog(@"sql:%s",sql);
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"创建表格成功");
+        //        HGBLog(@"创建表格成功");
         return YES;
     }else{
         HGBLog(@"创建表格失败");
@@ -270,7 +263,7 @@ static HGBDataBaseTool *instance=nil;
 
 /**
  创建表格-字段类型自定
- 
+
  @param tableName 表名
  @param primarykey 主键字段名
  @param keyDic 数据字典 name-value 字段名值-数据类型-主键名要包含在其中
@@ -281,14 +274,14 @@ static HGBDataBaseTool *instance=nil;
         return NO;
     }
     if(keyDic==nil){
-        HGBLog(@"创建表格失败");
+        //        HGBLog(@"创建表格失败");
         return NO;
     }
     if(primarykey==nil||primarykey.length==0){
         HGBLog(@"创建表格失败");
         return NO;
     }
-    
+
     //sql
     NSString *sqlStr;
     NSString *keyType=[keyDic objectForKey:primarykey];
@@ -312,10 +305,10 @@ static HGBDataBaseTool *instance=nil;
 
     char *error;
     const char *sql=[sqlStr UTF8String];
-//    HGBLog(@"sql:%s",sql);
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"创建表格成功");
+        //        HGBLog(@"创建表格成功");
         return YES;
     }else{
         HGBLog(@"创建表格失败");
@@ -327,7 +320,7 @@ static HGBDataBaseTool *instance=nil;
 
 /**
  查询数据库表名集合
- 
+
  @return 数据库表名集合
  */
 -(NSArray *)queryTableNames{
@@ -345,27 +338,26 @@ static HGBDataBaseTool *instance=nil;
 }
 #pragma mark 表格字段名查询
 
-
 /**
  表格查询字段名
- 
+
  @param tableName 表格名称
  @return 查询结果-array[dic] key 字段名 value 字段类型
  */
 -(NSArray *)queryNodeKeysWithTableName:(NSString *)tableName{
     if(tableName==nil||tableName.length==0){
-        HGBLog(@"表格名不能为空");
+        HGBLog(@"获取失败");
         return [NSArray array];
     }
     //sql
     sqlite3_stmt *stmt;
     NSString *sqlStr=[NSString stringWithFormat:@"PRAGMA table_info(%@)",tableName];
-    
+
     //执行
     const char *sql = [sqlStr UTF8String];
     NSMutableArray *names=[NSMutableArray array];
     if(sqlite3_prepare_v2(db, sql, -1, &stmt, NULL)==SQLITE_OK){
-        
+
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             char *nameData = (char *)sqlite3_column_text(stmt, 1);
             int nType = sqlite3_column_type(stmt, 1);
@@ -394,7 +386,7 @@ static HGBDataBaseTool *instance=nil;
                     nameType=@"null";
                     break;
             }
-            
+
             [names addObject:@{@"name":columnName,@"type":nameType}];
         }
     }
@@ -405,7 +397,7 @@ static HGBDataBaseTool *instance=nil;
 
 /**
  删除表格
- 
+
  @param tableName 表格名称
  @return 删除结果
  */
@@ -415,16 +407,16 @@ static HGBDataBaseTool *instance=nil;
         return NO;
     }
     char *error;
-    
+
     //sql
     NSString *sqlStr=[NSString stringWithFormat:@"drop table if exists %@",tableName];
-    
+
     const char *sql=[sqlStr UTF8String];
-    
-//    HGBLog(@"sql:%s",sql);
+
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"删除表格成功");
+        //        HGBLog(@"删除表格成功");
         return  YES;
     }else{
         HGBLog(@"删除表格失败");
@@ -433,10 +425,9 @@ static HGBDataBaseTool *instance=nil;
     }
 }
 #pragma mark 表格改名
-
 /**
  表格改名
- 
+
  @param tableName 原表名
  @param newTableName 新表名
  @return 表格改名结果
@@ -454,10 +445,10 @@ static HGBDataBaseTool *instance=nil;
     //sql
     NSString *sqlStr=[NSString stringWithFormat:@"alter table %@ rename to %@",tableName,newTableName];
     const char *sql=[sqlStr UTF8String];
-//    HGBLog(@"sql:%s",sql);
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"表格改名成功");
+        //        HGBLog(@"表格改名成功");
         return YES;
     }else{
         HGBLog(@"表格改名失败");
@@ -467,10 +458,9 @@ static HGBDataBaseTool *instance=nil;
 }
 
 #pragma mark 数据库表增加记录
-
 /**
  数据库表增加记录
- 
+
  @param nodes 记录数据
  @param tableName 表名
  @return 增加记录结果
@@ -484,103 +474,101 @@ static HGBDataBaseTool *instance=nil;
         HGBLog(@"表格增加记录失败");
         return NO;
     }
-    
+
     //加密数据
     NSMutableDictionary *dic=[NSMutableDictionary dictionaryWithDictionary:nodes];
-    HGBLog(@"%@",dic);
+
 
     NSMutableArray *encryptTableDataArr=[self.encryptDataDic objectForKey:tableName];
     NSString *key=[self.encryptKeyDic objectForKey:tableName];
     if(key&&key.length==0){
         key=tableName;
     }
-    
-    
+
+
     NSArray *names=[nodes allKeys];
     for(NSString *name in names){
         id value=[nodes objectForKey:name];
-        NSString *string=[HGBDataBaseTool objectEncapsulation:value];
+        NSString *string=[HGBNotificationDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            [dic setObject:[HGBDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+            [dic setObject:[HGBNotificationDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
         }else{
             [dic setObject:string forKey:name];
 
         }
     }
-    
-    
+
+
     //sql
     NSString *sqlStrKey=[NSString stringWithFormat:@"insert into %@(",tableName];
-    
+
     NSString *sqlStrValue=[NSString stringWithFormat:@"values("];
     int i=0;
     for(NSString *name in names){
         if(i==0){
             sqlStrKey=[NSString stringWithFormat:@"%@%@",sqlStrKey,name];
             sqlStrValue=[NSString stringWithFormat:@"%@'%@'",sqlStrValue,[dic objectForKey:name]];
-            
+
         }else{
-             sqlStrKey=[NSString stringWithFormat:@"%@,%@",sqlStrKey,name];
+            sqlStrKey=[NSString stringWithFormat:@"%@,%@",sqlStrKey,name];
             sqlStrValue=[NSString stringWithFormat:@"%@,'%@'",sqlStrValue,[dic objectForKey:name]];
         }
         i++;
     }
-    
+
     NSString *sqlStr=[NSString stringWithFormat:@"%@) %@)",sqlStrKey,sqlStrValue];
     char *error;
     const char *sql=[sqlStr UTF8String];
-//    HGBLog(@"sql:%s",sql);
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"表格增加记录成功");
+        //        HGBLog(@"表格增加记录成功");
         return YES;
     }else{
         HGBLog(@"表格增加记录失败");
         HGBLog(@"error:%s",error);
-        
+
         return NO;
     }
 }
 #pragma mark 表格删除记录
-
 /**
  数据库表删除记录
- 
+
  @param conditionDic 记录条件-为空则删除全部记录
  @param tableName 表名
  @return 删除记录结果
  */
 -(BOOL)removeNodesWithCondition:(NSDictionary *)conditionDic inTableWithTableName:(NSString *)tableName{
     if(tableName==nil||tableName.length==0){
-         HGBLog(@"表格删除记录失败");
+        HGBLog(@"表格删除记录失败");
         return NO;
     }
-    
+
     //加密
     NSMutableDictionary *dic=[NSMutableDictionary dictionaryWithDictionary:conditionDic];
-    
-   NSMutableArray *encryptTableDataArr=[self.encryptDataDic objectForKey:tableName];
+
+    NSMutableArray *encryptTableDataArr=[self.encryptDataDic objectForKey:tableName];
     NSString *key=[self.encryptKeyDic objectForKey:tableName];
     if(key&&key.length==0){
         key=tableName;
     }
-    
+
     NSArray *names=[conditionDic allKeys];
     for(NSString *name in names){
-       
         id value=[conditionDic objectForKey:name];
-        NSString *string=[HGBDataBaseTool objectEncapsulation:value];
+        NSString *string=[HGBNotificationDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            [dic setObject:[HGBDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+            [dic setObject:[HGBNotificationDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
         }else{
             [dic setObject:string forKey:name];
 
         }
     }
-    
+
     //sql
     NSString *sqlStr=[NSString stringWithFormat:@"delete from %@ where",tableName];
-    
+
     if(dic==nil||[dic count]==0){
         sqlStr=[NSString stringWithFormat:@"delete from %@",tableName];
     }
@@ -594,12 +582,12 @@ static HGBDataBaseTool *instance=nil;
         i++;
     }
     char *error;
-    
+
     const char *sql=[sqlStr UTF8String];
-//    HGBLog(@"sql:%s",sql);
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"表格删除记录成功");
+        //        HGBLog(@"表格删除记录成功");
         return YES;
     }else{
         HGBLog(@"表格删除记录失败");
@@ -611,7 +599,7 @@ static HGBDataBaseTool *instance=nil;
 
 /**
  数据库表修改记录
- 
+
  @param conditionDic 条件-条件为空查询所有数据
  @param changeDic   修改内容
  @param tableName 表名
@@ -624,22 +612,21 @@ static HGBDataBaseTool *instance=nil;
     }
     //加密
     NSMutableDictionary *dic_condition=[NSMutableDictionary dictionaryWithDictionary:conditionDic];
-    
-    
+
+
     NSMutableArray *encryptTableDataArr=[self.encryptDataDic objectForKey:tableName];
     NSString *key=[self.encryptKeyDic objectForKey:tableName];
     if(key&&key.length==0){
         key=tableName;
     }
-    
+
     //加密条件
     NSArray *names_condition=[conditionDic allKeys];
     for(NSString *name in names_condition){
-        
         id value=[conditionDic objectForKey:name];
-        NSString *string=[HGBDataBaseTool objectEncapsulation:value];
+        NSString *string=[HGBNotificationDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            [dic_condition setObject:[HGBDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+            [dic_condition setObject:[HGBNotificationDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
         }else{
             [dic_condition setObject:string forKey:name];
 
@@ -647,14 +634,14 @@ static HGBDataBaseTool *instance=nil;
     }
     //加密修改内容
     NSMutableDictionary *dic_change=[NSMutableDictionary dictionaryWithDictionary:changeDic];
-    
+
     NSArray *names_change=[changeDic allKeys];
     for(NSString *name in names_change){
-       
+
         id value=[changeDic objectForKey:name];
-        NSString *string=[HGBDataBaseTool objectEncapsulation:value];
+        NSString *string=[HGBNotificationDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            [dic_change setObject:[HGBDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+            [dic_change setObject:[HGBNotificationDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
         }else{
             [dic_change setObject:string forKey:name];
 
@@ -666,7 +653,7 @@ static HGBDataBaseTool *instance=nil;
     if(sqlCondition&&names_condition.count!=0){
         sqlCondition=[NSString stringWithFormat:@"where"];
     }
-    
+
     int i=0;
     for(NSString *name in names_change){
         if(i==0){
@@ -676,7 +663,7 @@ static HGBDataBaseTool *instance=nil;
         }
         i++;
     }
-    
+
     i=0;
     for(NSString *name in names_condition){
         if(i==0){
@@ -686,17 +673,17 @@ static HGBDataBaseTool *instance=nil;
         }
         i++;
     }
-    
+
     NSString *sqlStr=[NSString stringWithFormat:@"%@ %@",sqlChange,sqlCondition];
     char *error;
     const char *sql=[sqlStr UTF8String];
-    
-//    HGBLog(@"sql:%s",sql);
+
+    //    HGBLog(@"sql:%s",sql);
 
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"表格修改记录成功");
-        ;
+        //        HGBLog(@"表格修改记录成功");
+
         return YES;
     }else{
         HGBLog(@"表格修改记录失败");
@@ -706,10 +693,9 @@ static HGBDataBaseTool *instance=nil;
 }
 
 #pragma mark 表格记录查询
-
 /**
  表格查询
- 
+
  @param conditionDic 查询条件
  @param tableName 表格名称
  @return 查询结果
@@ -719,30 +705,29 @@ static HGBDataBaseTool *instance=nil;
         HGBLog(@"查询表格记录失败");
         return [NSArray array];
     }
-    
-    
+
+
     //加密
     NSMutableDictionary *dic=[NSMutableDictionary dictionaryWithDictionary:conditionDic];
-    
+
     NSMutableArray *encryptTableDataArr=[self.encryptDataDic objectForKey:tableName];
     NSString *key=[self.encryptKeyDic objectForKey:tableName];
     if(key&&key.length==0){
         key=tableName;
     }
-    
+
     NSArray *names=[conditionDic allKeys];
     for(NSString *name in names){
-        
         id value=[conditionDic objectForKey:name];
-        NSString *string=[HGBDataBaseTool objectEncapsulation:value];
+        NSString *string=[HGBNotificationDataBaseTool objectEncapsulation:value];
         if([encryptTableDataArr containsObject:name]){
-            [dic setObject:[HGBDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
+            [dic setObject:[HGBNotificationDataBaseTool encryptStringWithAES256:string andWithKey:key] forKey:name];
         }else{
             [dic setObject:string forKey:name];
 
         }
     }
-    
+
     //sql
     NSString *sqlStr=[NSString stringWithFormat:@"select * from %@ where",tableName];
     if(dic==nil||[dic count]==0){
@@ -758,7 +743,7 @@ static HGBDataBaseTool *instance=nil;
         }
         i++;
     }
-    
+
     const char *sql=[sqlStr UTF8String];
     sqlite3_stmt *stmt;
     NSMutableArray *searchArr=[NSMutableArray array];
@@ -776,20 +761,20 @@ static HGBDataBaseTool *instance=nil;
                     NSString *valueStr=[NSString stringWithFormat:@"%s",value];
                     NSString *string;
                     if([encryptTableDataArr containsObject:subname]){
-                        string=[HGBDataBaseTool decryptStringWithAES256:valueStr andWithKey:key];
+                        string=[HGBNotificationDataBaseTool decryptStringWithAES256:valueStr andWithKey:key];
                     }else{
                         string=valueStr;
                     }
-                    id lastvalue=[HGBDataBaseTool stringAnalysis:string];
+                    id lastvalue=[HGBNotificationDataBaseTool stringAnalysis:string];
                     [dic setObject:lastvalue forKey:subname];
-                   
+
                 }
-                
+
             }
             [searchArr addObject:dic];
-            
+
         }
-        
+
     }
     sqlite3_finalize(stmt);
     return searchArr;
@@ -798,23 +783,23 @@ static HGBDataBaseTool *instance=nil;
 
 /**
  执行sql语句
- 
+
  @param sqlString sql语句
  @return 执行结果
  */
 -(BOOL)alterDataBySqlString:(NSString *)sqlString{
     char *error;
-    
-    if(sqlString==nil||sqlString.length==0){
-        HGBLog(@"sql为空");
+
+    if(sqlString&&sqlString.length==0){
+        HGBLog(@"执行失败");
         return NO;
     }
     const char *sql=[sqlString UTF8String];
-    
-//    HGBLog(@"sql:%s",sql);
+
+    //    HGBLog(@"sql:%s",sql);
     //执行
     if(sqlite3_exec(db, sql, NULL, NULL, &error)==SQLITE_OK){
-//        HGBLog(@"执行成功");
+        //        HGBLog(@"执行成功");
         return  YES;
     }else{
         HGBLog(@"执行失败");
@@ -823,25 +808,24 @@ static HGBDataBaseTool *instance=nil;
     }
 }
 #pragma mark 执行sql语句-返回数据结果
-
 /**
  执行sql语句并返回数据结果-目前仅支持text结果
- 
+
  @param sqlString sql语句
  @param tableName 表格
  @return 返回结果
  */
 -(NSArray *)queryDataBySqlString:(NSString *)sqlString  andWithNodeAttributeCount:(NSString *)count andWithTableName:(NSString *)tableName
 {
-    if(sqlString==nil||sqlString.length==0){
-        HGBLog(@"sql为空");
+    if(sqlString&&sqlString.length==0){
+        HGBLog(@"执行失败");
         return [NSArray array];
     }
     if(tableName==nil||tableName.length==0){
-        HGBLog(@"tableName为空");
-       return [NSArray array];
+        HGBLog(@"查询表格记录失败");
+        return [NSArray array];
     }
-    
+
     NSMutableArray *encryptTableDataArr=[self.encryptDataDic objectForKey:tableName];
     NSString *key=[self.encryptKeyDic objectForKey:tableName];
     if(key&&key.length==0){
@@ -862,22 +846,22 @@ static HGBDataBaseTool *instance=nil;
                     NSString *subname=[nameDic objectForKey:@"name"];
                     NSString *type=[nameDic objectForKey:@"type"];
                     if([type isEqualToString:@"text"]){
-                        
-                        
-                        
+
+
+
                     }else{
-                        
+
                     }
                     const unsigned char *value=sqlite3_column_text(stmt, i);
                     NSString *valueStr=[NSString stringWithFormat:@"%s",value];
                     if([encryptTableDataArr containsObject:subname]){
-                        [dic setObject:[HGBDataBaseTool decryptStringWithAES256:valueStr andWithKey:key] forKey:subname];
+                        [dic setObject:[HGBNotificationDataBaseTool decryptStringWithAES256:valueStr andWithKey:key] forKey:subname];
                     }else{
                         [dic setObject:valueStr forKey:subname];
                     }
-                    
+
                 }
-                
+
             }
             [searchArr addObject:dic];
         }
@@ -901,7 +885,7 @@ static HGBDataBaseTool *instance=nil;
 #pragma mark AES256-string
 /**
  AES256加密
- 
+
  @param string 字符串
  @param key  加密密钥
  @return 加密后字符串
@@ -913,12 +897,12 @@ static HGBDataBaseTool *instance=nil;
     if(string==nil){
         return nil;
     }
-    NSString *encryptString= [HGBDataBaseTool AES256StringEncrypt:string WithKey:key];
+    NSString *encryptString= [HGBNotificationDataBaseTool AES256StringEncrypt:string WithKey:key];
     return encryptString;
 }
 /**
  AES256解密
- 
+
  @param string 字符串
  @param key  解密密钥
  @return 解密后字符串
@@ -931,100 +915,25 @@ static HGBDataBaseTool *instance=nil;
     if(string==nil){
         return nil;
     }
-    NSString *decryptString= [HGBDataBaseTool AES256StringDecrypt:string WithKey:key];
+    NSString *decryptString= [HGBNotificationDataBaseTool AES256StringDecrypt:string WithKey:key];
     return decryptString;
 }
-#pragma mark AES256-data
-/**
- AES256加密
- 
- @param data 数据
- @param key  加密密钥
- @return 加密后数据
- */
-+(NSData *)encryptDataWithAES256:(NSData *)data andWithKey:(NSString *)key{
-    if(key==nil||key.length==0){
-        return nil;
-    }
-    NSData *encryptData= [HGBDataBaseTool AES256DataEncrypt:data WithKey:key];
-    return encryptData;
-}
-/**
- AES256解密
- 
- @param data 数据
- @param key  解密密钥
- @return 解密后数据
- */
-+(NSData *)decryptDataWithAES256:(NSData *)data andWithKey:(NSString *)key{
-    if(key==nil||key.length==0){
-        return nil;
-    }
-    NSData *decryptData= [HGBDataBaseTool AES256DataEncrypt:data WithKey:key];
-    return decryptData;
-}
-#pragma mark AES256-data
-+ (NSData *)AES256DataEncrypt:(NSData *)data WithKey:(NSString *)key   //加密
-{
-    char keyPtr[kCCKeySizeAES256+1];
-    bzero(keyPtr, sizeof(keyPtr));
-    [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
-    NSUInteger dataLength = [data length];
-    size_t bufferSize = dataLength + kCCBlockSizeAES128;
-    void *buffer = malloc(bufferSize);
-    size_t numBytesEncrypted = 0;
-    CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt, kCCAlgorithmAES128,
-                                          kCCOptionPKCS7Padding | kCCOptionECBMode,
-                                          keyPtr, kCCBlockSizeAES128,
-                                          NULL,
-                                          [data bytes], dataLength,
-                                          buffer, bufferSize,
-                                          &numBytesEncrypted);
-    if (cryptStatus == kCCSuccess) {
-        return [NSData dataWithBytesNoCopy:buffer length:numBytesEncrypted];
-    }
-    free(buffer);
-    return nil;
-}
 
-
-- (NSData *)AES256DataDecrypt:(NSData *)data WithKey:(NSString *)key   //解密
-{
-    char keyPtr[kCCKeySizeAES256+1];
-    bzero(keyPtr, sizeof(keyPtr));
-    [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
-    NSUInteger dataLength = [data length];
-    size_t bufferSize = dataLength + kCCBlockSizeAES128;
-    void *buffer = malloc(bufferSize);
-    size_t numBytesDecrypted = 0;
-    CCCryptorStatus cryptStatus = CCCrypt(kCCDecrypt, kCCAlgorithmAES128,
-                                          kCCOptionPKCS7Padding | kCCOptionECBMode,
-                                          keyPtr, kCCBlockSizeAES128,
-                                          NULL,
-                                          [data bytes], dataLength,
-                                          buffer, bufferSize,
-                                          &numBytesDecrypted);
-    if (cryptStatus == kCCSuccess) {
-        return [NSData dataWithBytesNoCopy:buffer length:numBytesDecrypted];
-    }
-    free(buffer);
-    return nil;
-}
 #pragma mark AES256-string
 + (NSString *)AES256StringEncrypt:(NSString *)string  WithKey:(NSString *)keyString
 {
-    
+
     char keyPtr[kCCKeySizeAES256 + 1];
     bzero(keyPtr, sizeof(keyPtr));
     [keyString getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
-    
+
     NSData *sourceData = [string dataUsingEncoding:NSUTF8StringEncoding];
     NSUInteger dataLength = [sourceData length];
     size_t buffersize = dataLength + kCCBlockSizeAES128;
     void *buffer = malloc(buffersize);
     size_t numBytesEncrypted = 0;
     CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt, kCCAlgorithmAES128, kCCOptionPKCS7Padding | kCCOptionECBMode, keyPtr, kCCBlockSizeAES128, NULL, [sourceData bytes], dataLength, buffer, buffersize, &numBytesEncrypted);
-    
+
     if (cryptStatus == kCCSuccess) {
         NSData *encryptData = [NSData dataWithBytesNoCopy:buffer length:numBytesEncrypted];
         //对加密后的二进制数据进行base64转码
@@ -1035,18 +944,18 @@ static HGBDataBaseTool *instance=nil;
         free(buffer);
         return nil;
     }
-    
+
 }
 
 + (NSString *)AES256StringDecrypt:(NSString *)string WithKey:(NSString *)keyString
 {
     //先对加密的字符串进行base64解码
     NSData *decodeData = [[NSData alloc] initWithBase64EncodedString:string options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    
+
     char keyPtr[kCCKeySizeAES256 + 1];
     bzero(keyPtr, sizeof(keyPtr));
     [keyString getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
-    
+
     NSUInteger dataLength = [decodeData length];
     size_t bufferSize = dataLength + kCCBlockSizeAES128;
     void *buffer = malloc(bufferSize);
@@ -1062,7 +971,7 @@ static HGBDataBaseTool *instance=nil;
         free(buffer);
         return nil;
     }
-    
+
 }
 #pragma mark 首选项
 /**
@@ -1077,7 +986,7 @@ static HGBDataBaseTool *instance=nil;
         return NO;
     }
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setValue:value forKey:key];
+    [defaults setObject:value forKey:key];
     [defaults synchronize];
     return YES;
 }
@@ -1099,15 +1008,15 @@ static HGBDataBaseTool *instance=nil;
 #pragma mark bundleid
 /**
  获取BundleID
- 
+
  @return BundleID
  */
 +(NSString*) getBundleID
 
 {
-    
+
     return [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
-    
+
 }
 #pragma mark object-string
 /**
@@ -1121,10 +1030,10 @@ static HGBDataBaseTool *instance=nil;
     if([object isKindOfClass:[NSString class]]){
         string=[NSString stringWithFormat:@"%@",object];
     }else if([object isKindOfClass:[NSArray class]]){
-        object=[HGBDataBaseTool ObjectToJSONString:object];
+        object=[HGBNotificationDataBaseTool ObjectToJSONString:object];
         string=[@"array://" stringByAppendingString:object];
     }else if([object isKindOfClass:[NSDictionary class]]){
-        object=[HGBDataBaseTool ObjectToJSONString:object];
+        object=[HGBNotificationDataBaseTool ObjectToJSONString:object];
         string=[@"dictionary://" stringByAppendingString:object];
     }else if([object isKindOfClass:[NSNumber class]]){
         string=[NSString stringWithFormat:@"number://%@",object];
@@ -1154,10 +1063,10 @@ static HGBDataBaseTool *instance=nil;
         object=string;
     }else if([string hasPrefix:@"array://"]){
         string=[string stringByReplacingOccurrencesOfString:@"array://" withString:@""];
-        object=[HGBDataBaseTool JSONStringToObject:string];
+        object=[HGBNotificationDataBaseTool JSONStringToObject:string];
     }else if ([string hasPrefix:@"dictionary://"]){
         string=[string stringByReplacingOccurrencesOfString:@"dictionary://" withString:@""];
-        object=[HGBDataBaseTool JSONStringToObject:string];
+        object=[HGBNotificationDataBaseTool JSONStringToObject:string];
     }else if ([string hasPrefix:@"number://"]){
         string=[string stringByReplacingOccurrencesOfString:@"number://" withString:@""];
         object=[[NSNumber alloc]initWithFloat:string.floatValue];
@@ -1201,14 +1110,14 @@ static HGBDataBaseTool *instance=nil;
     if(![jsonString isKindOfClass:[NSString class]]){
         return nil;
     }
-    jsonString=[HGBDataBaseTool jsonStringHandle:jsonString];
+    jsonString=[HGBNotificationDataBaseTool jsonStringHandle:jsonString];
     //    NSLog(@"%@",jsonString);
     NSError *error = nil;
     NSData  *data=[jsonString dataUsingEncoding:NSUTF8StringEncoding];
     if(jsonString.length>0&&[[jsonString substringToIndex:1] isEqualToString:@"{"]){
         NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
         if(error){
-            HGBLog(@"%@",error);
+            NSLog(@"%@",error);
             return jsonString;
         }else{
             return dic;
@@ -1216,7 +1125,7 @@ static HGBDataBaseTool *instance=nil;
     }else if(jsonString.length>0&&[[jsonString substringToIndex:1] isEqualToString:@"["]){
         NSArray *array = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
         if(error){
-            HGBLog(@"%@",error);
+            NSLog(@"%@",error);
             return jsonString;
         }else{
             return array;
@@ -1323,7 +1232,7 @@ static HGBDataBaseTool *instance=nil;
  @return 结果
  */
 +(BOOL)createDirectoryPath:(NSString *)directoryPath{
-    if([HGBDataBaseTool isExitAtFilePath:directoryPath]){
+    if([HGBNotificationDataBaseTool isExitAtFilePath:directoryPath]){
         return YES;
     }
     NSFileManager *filemanage=[NSFileManager defaultManager];
@@ -1358,10 +1267,10 @@ static HGBDataBaseTool *instance=nil;
     if(url==nil||url.length==0){
         return NO;
     }
-    if(![HGBDataBaseTool isURL:url]){
+    if(![HGBNotificationDataBaseTool isURL:url]){
         return NO;
     }
-     url=[HGBDataBaseTool urlAnalysis:url];
+    url=[HGBNotificationDataBaseTool urlAnalysis:url];
     if(![url containsString:@"://"]){
         url=[[NSURL fileURLWithPath:url]absoluteString];
     }
@@ -1388,10 +1297,10 @@ static HGBDataBaseTool *instance=nil;
     if(url==nil){
         return nil;
     }
-    if(![HGBDataBaseTool isURL:url]){
+    if(![HGBNotificationDataBaseTool isURL:url]){
         return nil;
     }
-    NSString *urlstr=[HGBDataBaseTool urlAnalysis:url];
+    NSString *urlstr=[HGBNotificationDataBaseTool urlAnalysis:url];
     return [[NSURL URLWithString:urlstr]path];
 }
 /**
@@ -1403,7 +1312,7 @@ static HGBDataBaseTool *instance=nil;
     if(url==nil){
         return nil;
     }
-    if(![HGBDataBaseTool isURL:url]){
+    if(![HGBNotificationDataBaseTool isURL:url]){
         return nil;
     }
     if([url containsString:@"://"]){
@@ -1455,7 +1364,7 @@ static HGBDataBaseTool *instance=nil;
  @return 封装后url
  */
 +(NSString *)urlEncapsulation:(NSString *)url{
-    if(![HGBDataBaseTool isURL:url]){
+    if(![HGBNotificationDataBaseTool isURL:url]){
         return nil;
     }
     NSString *homePath=NSHomeDirectory();

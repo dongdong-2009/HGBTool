@@ -9,7 +9,7 @@
 #import "AppDelegate+HGBPush.h"
 #import <UserNotifications/UserNotifications.h>
 #import <objc/runtime.h>
-
+#import "HGBNotificationDataBaseTool.h"
 
 
 #define WidthScale [UIScreen mainScreen].bounds.size.width/375
@@ -26,6 +26,8 @@
 #define HGBPushNotificationDeviceTokenKey @"HGBPushNotificationDeviceTokenKey"
 #define HGBPushDeviceTokenKey @"HGBPushDeviceTokenKey"
 
+#define NotificatonTable @"NotificatonTable"
+#define NotificationID @"notification_id"
 
 
 #define HGBPushNotificationMessageSavePath @"document://HGBPushMessage"
@@ -70,6 +72,7 @@ typedef enum HGBPushNotificatonType
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(application_Push_willTerminateHandle:) name:UIApplicationWillTerminateNotification object:nil];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(registerPushNotificationAuthority) name:HGBRegisterPushDeviceTokenKey object:nil];
+    [[HGBNotificationDataBaseTool shareInstance] createTableWithTableName:NotificatonTable andWithKeys:@[NotificationID,@"time",@"status",@"notification"] andWithPrimaryKey:@"id"];
 }
 #pragma mark 权限
 -(void)isCanPush:(void(^)(BOOL isCanPush))resultBlock{
@@ -188,6 +191,12 @@ typedef enum HGBPushNotificatonType
     [message setObject:@(messageType) forKey:@"type"];
     [message setObject:messageInfo forKey:@"message"];
     [[NSNotificationCenter defaultCenter]postNotificationName:HGBPushNotificationMessageKey object:self userInfo:message];
+
+    NSDate *date=[NSDate date];
+    NSDateFormatter *f=[[NSDateFormatter alloc]init];
+    f.dateFormat=@"yyyy-MM-dd HH:mm:ss";
+
+    [[HGBNotificationDataBaseTool shareInstance]addNode:@{NotificationID:[self getSecondTimeStringSince1970],@"status":@"0",@"time":[f stringFromDate:date],@"notification":message} withTableName:NotificatonTable];
 
 }
 #pragma mark 申请推送权限

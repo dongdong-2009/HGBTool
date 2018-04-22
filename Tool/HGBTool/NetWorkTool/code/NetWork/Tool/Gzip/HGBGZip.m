@@ -8,13 +8,19 @@
 
 #import "HGBGZip.h"
 
+#ifdef HGBLogFlag
+#define HGBLog(FORMAT,...) fprintf(stderr,"**********HGBErrorLog-satrt***********\n{\n文件名称:%s;\n方法:%s;\n行数:%d;\n提示:%s\n}\n**********HGBErrorLog-end***********\n",[[[NSString stringWithUTF8String:__FILE__] lastPathComponent] UTF8String],[[NSString stringWithUTF8String:__func__] UTF8String], __LINE__, [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
+#else
+#define HGBLog(...);
+#endif
+
 @implementation HGBGZip
 
 +(NSData*) gzipData: (NSData*)pUncompressedData
 {
     if (!pUncompressedData || [pUncompressedData length] == 0)
     {
-        NSLog(@"%s: Error: Can't compress an empty or null NSData object.", __func__);
+        HGBLog(@"%s: Error: Can't compress an empty or null NSData object.", __func__);
         return nil;
     }
 
@@ -45,7 +51,7 @@
                 errorMsg = @"Unknown error code.";
                 break;
         }
-        NSLog(@"%s: deflateInit2() Error: \"%@\" Message: \"%s\"", __func__, errorMsg, zlibStreamStruct.msg);
+        HGBLog(@"%s: deflateInit2() Error: \"%@\" Message: \"%s\"", __func__, errorMsg, zlibStreamStruct.msg);
         return nil;
     }
 
@@ -95,7 +101,7 @@
         //                errorMsg = @"Unknown error code.";
         //                break;
         //        }
-        //NSLog(@"%s: zlib error while attempting compression: \"%@\" Message: \"%s\"", __func__, errorMsg, zlibStreamStruct.msg);
+        //HGBLog(@"%s: zlib error while attempting compression: \"%@\" Message: \"%s\"", __func__, errorMsg, zlibStreamStruct.msg);
 
         // Free data structures that were dynamically created for the stream.
         deflateEnd(&zlibStreamStruct);
@@ -105,7 +111,7 @@
     // Free data structures that were dynamically created for the stream.
     deflateEnd(&zlibStreamStruct);
     [compressedData setLength: zlibStreamStruct.total_out];
-    NSLog(@"%s: Compressed file from %d KB to %d KB", __func__, [pUncompressedData length]/1024, [compressedData length]/1024);
+    HGBLog(@"%s: Compressed file from %d KB to %d KB", __func__, [pUncompressedData length]/1024, [compressedData length]/1024);
 
     return compressedData;
 }

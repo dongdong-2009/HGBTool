@@ -79,12 +79,27 @@
 static  HGBCustomKeyBord *obj = nil;
 #pragma mark init
 +(instancetype)instance{
-    HGBCustomKeyBord *keyBord=[[HGBCustomKeyBord alloc]initWithFrame:CGRectMake(0, 0,kWidth,kWidth*0.576+72*hScale+2)];
+    CGRect frame;
+    if(kHeight>kWidth){
+        frame=CGRectMake(0, 0,kWidth,kWidth*0.576+72*hScale+2);
+    }else{
+        frame=CGRectMake(kWidth-kHeight*0.7, 0,kHeight*0.7,kHeight*0.7*0.576+72*hScale+2);
+    }
+
+     HGBCustomKeyBord *keyBord=[[HGBCustomKeyBord alloc]initWithFrame:frame];
+
+
     return keyBord;
 }
 - (instancetype)init{
     self.keybordy=72*hScale+2;
-    self = [self initWithFrame:CGRectMake(0, 0,kWidth,kWidth*0.576+self.keybordy)];
+    CGRect frame;
+    if(kHeight>kWidth){
+        frame=CGRectMake(0, 0,kWidth,kWidth*0.576+72*hScale+2);
+    }else{
+        frame=CGRectMake(kWidth-kHeight*0.7, 0,kHeight*0.7,kHeight*0.7*0.576+72*hScale+2);
+    }
+    self = [self initWithFrame:frame];
     if (self) {
         self.keybordy=72*hScale+2;
     }
@@ -168,7 +183,7 @@ static  HGBCustomKeyBord *obj = nil;
         
     }
     _numOnlyPad.delegate=self;
-    _numOnlyPad.frame=CGRectMake(_numOnlyPad.frame.origin.x, self.keybordy, _numOnlyPad.frame.size.width,  _numOnlyPad.frame.size.height);
+    _numOnlyPad.frame=CGRectMake(0, self.keybordy, self.bounds.size.width, self.bounds.size.height-self.keybordy);
     return _numOnlyPad;
 }
 - (HGBNumKeyBord *)numPad{
@@ -181,7 +196,7 @@ static  HGBCustomKeyBord *obj = nil;
     }
     _numPad.delegate = self;
     _numPad.keybordType=self.keybordType;
-    _numPad.frame=CGRectMake(_numPad.frame.origin.x, self.keybordy, _numPad.frame.size.width,  _numPad.frame.size.height);
+    _numPad.frame=CGRectMake(0, self.keybordy, self.bounds.size.width, self.bounds.size.height-self.keybordy);
     return _numPad;
 }
 - (HGBWordKeyBord *)wordPad{
@@ -194,7 +209,7 @@ static  HGBCustomKeyBord *obj = nil;
     }
     _wordPad.delegate = self;
     _wordPad.keybordType=self.keybordType;
-    _wordPad.frame=CGRectMake(_wordPad.frame.origin.x, self.keybordy, _wordPad.frame.size.width,  _wordPad.frame.size.height);
+    _wordPad.frame=CGRectMake(0, self.keybordy, self.bounds.size.width, self.bounds.size.height-self.keybordy);
     return _wordPad;
 }
 -(HGBSymbolKeyBord *)symbolPad{
@@ -207,7 +222,7 @@ static  HGBCustomKeyBord *obj = nil;
     }
     _symbolPad.delegate = self;
     _symbolPad.keybordType=self.keybordType;
-    _symbolPad.frame=CGRectMake(_symbolPad.frame.origin.x, self.keybordy, _symbolPad.frame.size.width,  _symbolPad.frame.size.height);
+    _symbolPad.frame=CGRectMake(0, self.keybordy, self.bounds.size.width, self.bounds.size.height-self.keybordy);
     return _symbolPad;
 }
 - (UITextField *)responder{

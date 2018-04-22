@@ -59,10 +59,7 @@ typedef enum HGBNetWorkToolErrorType
  */
 @property (nonatomic,assign) BOOL isUnGzip;
 
-/**
- 是否是https请求
- */
-@property(assign,nonatomic)BOOL isHttps;
+
 /**
  双向认证证书时的双向认证
  */

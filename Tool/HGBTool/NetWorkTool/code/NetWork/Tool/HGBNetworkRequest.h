@@ -84,6 +84,16 @@
  */
 @property(strong,nonatomic)NSString *mineType;
 
+#pragma mark https 证书
+/**
+ 双向认证证书时的双向认证
+ */
+@property (nonatomic, copy) NSString *cerFilePath;
+/**
+ 双向认证证书密码
+ */
+@property (nonatomic,copy) NSString *cerFilePassword;
+
 #pragma mark 一般网络请求参数设置
 /**
  参数

@@ -1,12 +1,13 @@
 //
-//  HGBSEDataBaseTool.h
-//  VirtualCard
+//  HGBNotificationDataBaseTool.h
+//  CordovaWork
 //
-//  Created by huangguangbao on 2017/6/27.
-//  Copyright © 2017年 agree.com.cn. All rights reserved.
+//  Created by huangguangbao on 2018/4/21.
 //
 
 #import <Foundation/Foundation.h>
+
+
 
 #ifdef DEBUG
 #define HGBLogFlag YES
@@ -23,11 +24,12 @@
  tmp://沙盒Tmp文件夹
 
  */
-@interface HGBSEDataBaseTool : NSObject
+
+@interface HGBNotificationDataBaseTool : NSObject
 #pragma mark 数据库单例
 /**
  数据库封装-打开默认数据库
- 
+
  @return 数据库类
  */
 +(instancetype)shareInstance;
@@ -50,7 +52,7 @@
 #pragma mark 关闭数据库
 /**
  关闭数据库
- 
+
  @return 关闭结果
  */
 -(BOOL)closeDataBase;
@@ -59,18 +61,18 @@
 //
 ///**
 // 设置数据库加密标志-打开数据库需重新设置
-// 
+//
 // @param key 加密密钥
 // */
 //+(BOOL)encryptDataBaseWithKey:(NSString *)key;
 
 /**
  设置数据库表中数据加密标志-打开数据库需重新设置
- 
+
  @param valueKeys  加密字段
  @param key 加密密钥
  @param tableName 表明
- 
+
  @return 设置结果
  */
 -(BOOL)encryptTableWithValueKeys:(NSArray *)valueKeys andWithEncryptSecretKey:(NSString *)key inTableName:(NSString *)tableName;
@@ -78,7 +80,7 @@
 #pragma mark 创建表格
 /**
  创建表格-默认text类型
- 
+
  @param tableName 表名
  @param keys 字段名集合，可以包含主键名-默认为文本类型-不可为空
  @param primarykey 主键字段名
@@ -87,14 +89,14 @@
 #pragma mark 查询数据库表名集合
 /**
  查询数据库表名集合
- 
+
  @return 数据库表名集合
  */
 -(NSArray *)queryTableNames;
 #pragma mark 查询表字段集合
 /**
  表格查询字段名
- 
+
  @param tableName 表格名称
  @return 查询结果-array[dic] key 字段名 value 字段类型
  */
@@ -102,7 +104,7 @@
 #pragma mark 删除表格
 /**
  删除表格
- 
+
  @param tableName 表格名称
  @return 删除结果
  */
@@ -110,7 +112,7 @@
 #pragma mark 表格改名
 /**
  表格改名
- 
+
  @param tableName 原表名
  @param newTableName 新表名
  @return 表格改名结果
@@ -120,7 +122,7 @@
 #pragma mark 表格增加记录
 /**
  数据库表增加记录
- 
+
  @param nodes 记录数据
  @param tableName 表名
  @return 增加记录结果
@@ -131,7 +133,7 @@
 
 /**
  数据库表删除记录
- 
+
  @param conditionDic 记录条件-为空则删除全部记录
  @param tableName 表名
  @return 删除记录结果
@@ -140,7 +142,7 @@
 #pragma mark 表格修改记录
 /**
  数据库表修改记录
- 
+
  @param conditionDic 条件-条件为空查询所有数据
  @param changeDic   修改内容
  @param tableName 表名
@@ -152,7 +154,7 @@
 #pragma mark 表格记录查询
 /**
  表格查询
- 
+
  @param conditionDic 查询条件
  @param tableName 表格名称
  @return 查询结果
@@ -162,7 +164,7 @@
 #pragma mark 执行sql语句
 /**
  执行sql语句
- 
+
  @param sqlString sql语句
  @return 执行结果
  */
@@ -170,7 +172,7 @@
 
 /**
  执行sql语句并返回数据结果-目前仅支持text结果
- 
+
  @param sqlString sql语句
  @param tableName 表格
  @return 返回结果

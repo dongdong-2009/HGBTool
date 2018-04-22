@@ -46,6 +46,9 @@ static HGBNetWorkTool *instance=nil;
 
     HGBNetworkRequest *request = [[HGBNetworkRequest alloc]init];
 
+    request.cerFilePassword=self.cerFilePassword;
+    request.cerFilePath=self.cerFilePath;
+
     //请求配置
     request.requestMethod = @"GET";
     if(self.isSetSendFormat){
@@ -132,6 +135,8 @@ static HGBNetWorkTool *instance=nil;
     }
     
     HGBNetworkRequest *request = [[HGBNetworkRequest alloc]init];
+    request.cerFilePassword=self.cerFilePassword;
+    request.cerFilePath=self.cerFilePath;
 
     //请求链接
     request.requestUrl=url;
@@ -197,6 +202,8 @@ static HGBNetWorkTool *instance=nil;
     
     
     HGBNetworkRequest *request = [[HGBNetworkRequest alloc]init];
+    request.cerFilePassword=self.cerFilePassword;
+    request.cerFilePath=self.cerFilePath;
 
     //请求链接
     request.requestUrl = url;
@@ -245,6 +252,8 @@ static HGBNetWorkTool *instance=nil;
 
 
     HGBNetworkRequest *request = [[HGBNetworkRequest alloc]init];
+    request.cerFilePassword=self.cerFilePassword;
+    request.cerFilePath=self.cerFilePath;
     //请求链接
     request.requestUrl = url;
 

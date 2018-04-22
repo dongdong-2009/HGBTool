@@ -13,7 +13,7 @@
 #import <UserNotificationsUI/UserNotificationsUI.h>
 
 
-
+#import "HGBNotificationDataBaseTool.h"
 
 
 #define HGBMessageidentify @"messageIdentify"
@@ -28,6 +28,9 @@
 
 #define HGBPushNotificationMessageSavePath @"document://HGBPushMessage"
 
+
+#define NotificatonTable @"NotificatonTable"
+#define NotificationID @"notification_id"
 
 
 #define ReslutCode @"resultCode"
@@ -407,6 +410,98 @@ static HGBNotificationTool *noti=nil;
         }
     }
 
+}
+#pragma mark 文件存储消息
+
+/**
+ 获取消息集合
+
+ @return 消息集合
+ */
+- (NSArray *)getNotifications{
+    NSArray *messages=[[HGBNotificationDataBaseTool shareInstance]queryNodesWithCondition:@{} inTableWithTableName:NotificatonTable];
+    return messages;
+}
+/**
+ * 根据状态获取消息
+ *
+ *  @param status 状态
+ * @return 消息集合
+ */
+- (NSArray *)getNotificationsByStatus:(NSString *)status{
+    NSArray *messages=[[HGBNotificationDataBaseTool shareInstance]queryNodesWithCondition:@{@"status":status} inTableWithTableName:NotificatonTable];
+    return messages;
+
+}
+/**
+ * 根据id获取消息
+ *
+ *  @param notificationId 消息id
+ *   @return 消息
+ */
+- (NSDictionary *)getNotificationById:(NSString *)notificationId{
+     NSArray *messages=[[HGBNotificationDataBaseTool shareInstance]queryNodesWithCondition:@{NotificationID:notificationId} inTableWithTableName:NotificatonTable];
+    if (messages==nil||messages.count==0) {
+        NSDictionary *message=messages[0];
+        return messages;
+    }
+    return nil;
+
+
+
+}
+/**
+ * 消息修改
+ *
+ *  @param notificationId 消息id
+ *  @param status 消息状态
+ *  @param notification 消息
+ *   @return 结果
+ */
+- (BOOL)changeNotificationWithNotificationId:(NSString *)notificationId andWithStatus:(NSString *)status andWithNotification:(NSDictionary *)notification{
+    if (notificationId==nil||notificationId.length==0) {
+        return NO;
+    }
+    if(status==nil&&notification==nil){
+
+        return NO;
+    }
+    NSMutableDictionary *dic=[NSMutableDictionary dictionary];
+    if(status){
+        [dic setObject:status forKey:@"status"];
+    }
+    if(notification){
+        [dic setObject:notification forKey:@"notification"];
+    }
+     BOOL flag=[[HGBNotificationDataBaseTool shareInstance]updateNodeWithCondition:@{NotificationID:notificationId} andWithChangeDic:dic inTableWithTableName:NotificatonTable];
+    return flag;
+
+}
+/**
+ * 删除一条消息
+ *
+ *  @param notificationId 消息id
+ *   @return 结果
+ */
+- (BOOL)deleteNotificationById:(NSString *)notificationId{
+    if (notificationId==nil||notificationId.length==0) {
+
+        return NO;
+    }
+
+
+
+    BOOL flag=[[HGBNotificationDataBaseTool shareInstance]removeNodesWithCondition:@{NotificationID:notificationId} inTableWithTableName:NotificatonTable];
+    return flag;
+}
+/**
+ * 删除所有消息
+ *
+ *   @return 结果
+ */
+- (BOOL)deleteAllNotification{
+     BOOL flag=[[HGBNotificationDataBaseTool shareInstance]removeNodesWithCondition:@{} inTableWithTableName:NotificatonTable];
+    return flag;
 }
 #pragma mark 应用角标
 /**

@@ -9,6 +9,11 @@
 #import <Foundation/Foundation.h>
 #import "zlib.h"
 
+#ifdef DEBUG
+#define HGBLogFlag YES
+#else
+#endif
+
 @interface HGBGZip : NSObject
 
 +(NSData*) gzipData:(NSData*)pUncompressedData;  //压缩
