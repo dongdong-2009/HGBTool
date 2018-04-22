@@ -182,11 +182,12 @@
 }
 #pragma mark 重新链接
 -(void)startMonitor{
-    self.timer = [NSTimer timerWithTimeInterval:2 target:self selector:@selector(heartConnect) userInfo:nil repeats:YES];
+    self.timer = [NSTimer timerWithTimeInterval:3 target:self selector:@selector(heartConnect) userInfo:nil repeats:YES];
     [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
 }
 -(void)heartConnect{
-    if(self.isMakeDisConnect==NO&&[_clinetSocket isConnected]==NO){
+     [self clientSendData:@"connect"];
+    if(self.isMakeDisConnect==NO){
 
         [_clinetSocket connectToHost:self.clinetIp onPort:self.clinetPort.integerValue  withTimeout:-1 error:nil];
     }
